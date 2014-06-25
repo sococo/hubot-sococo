@@ -51,13 +51,13 @@ class Sococo extends Adapter
     console.log "Sococo init"
 
     apiParams = "token=#{@options.token}&zoneId=#{@options.room}&appId=#{@options.space}"
-    @client = new Faye.Client(@options.server);
-    @client.setHeader('API-Cookie', encodeURI(apiParams));
-    console.log("Connecting to Bayeux server: #{@options.server} with params #{apiParams}");
+    @client = new Faye.Client(@options.server)
+    @client.setHeader('API-Cookie', encodeURI(apiParams))
+    console.log("Connecting to Bayeux server: #{@options.server} with params #{apiParams}")
     @client.connect () =>
 
       identified = false
-      console.log("Connected #{@robot.name} to : #{@options.server}");
+      console.log("Connected #{@robot.name} to : #{@options.server}")
 
       identifyMsg = "____IDENTIFY_BOT___)"
       botSuid = null
@@ -94,7 +94,7 @@ class Sococo extends Adapter
           console.log(msg)
 
       sub.callback () =>
-        console.log("subscribed on",@options.channel);
+        console.log("subscribed on",@options.channel)
 
         # TODO: Replace this with the commented out 'connected' emit below.  once the need for identifyMsg is over.
         @client.publish @options.channel, new SococoMessage(identifyMsg).toJSON()

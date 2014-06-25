@@ -5,7 +5,7 @@ module.exports = (grunt) ->
   grunt.initConfig
     watch:
       files: ["source/**/*.coffee"]
-      tasks: ["coffee", "jshint"]
+      tasks: ["coffee", "coffeelint"]
 
     coffee:
       compile:
