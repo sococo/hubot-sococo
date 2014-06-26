@@ -45,7 +45,7 @@ class Sococo extends Adapter
       bayeuxpath: process.env.HUBOT_SOCOCO_BAYEUXPATH or null
       fayedebug: process.env.HUBOT_SOCOCO_FAYEDEBUG or null
       encodecookies: process.env.HUBOT_SOCOCO_ENCODECOOKIES or false
-      channel:  "/API"
+      channel:  "/stream"
 
     if not @options.server or not @options.token
       @robot.logger.error("HUBOT_SOCOCO_SERVER and HUBOT_SOCOCO_TOKEN env variables must be set")
@@ -67,7 +67,7 @@ class Sococo extends Adapter
       jar: j
       body:
         token: @options.token
-        zurl: @options.roomcode # TODO: oh god rename this
+        room: @options.roomcode
 
     console.log "Making login request to:", reqOps.url
     request reqOps, (error, response, body) =>
