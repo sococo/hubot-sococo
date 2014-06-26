@@ -24,7 +24,9 @@
     "test": "grunt"
   },
   "dependencies": {
-    "faye": "~1.0.1"
+    "cookie": "^0.1.2",
+    "faye": "~1.0.1",
+    "request": "^2.36.0"
   },
   "devDependencies": {
     "grunt": "~0.4.1",

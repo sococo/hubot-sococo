@@ -1,6 +1,9 @@
 {Adapter,TextMessage} = require 'hubot'
 Faye = require 'faye'
 http = require 'http'
+request = require 'request'
+cookie = require 'cookie'
+url = require 'url'
 
 class SococoMessage
   constructor:(@text) -> @
@@ -36,9 +39,12 @@ class Sococo extends Adapter
     @options =
       server:   process.env.HUBOT_SOCOCO_SERVER or null
       token:    process.env.HUBOT_SOCOCO_TOKEN or null
-      # TODO: Remove when api params aren't needed.
-      room:     process.env.HUBOT_SOCOCO_ROOM or "1344FD08-23C9-4BA6-83AE-A33A0E08A333"
-      space:    process.env.HUBOT_SOCOCO_SPACE or "cb5a892a-f794-4495-a5b9-46c2013c6889"
+      roomcode: process.env.HUBOT_SOCOCO_ROOMCODE or null
+      # optional arguments that usually do not need to be changed:
+      loginpath: process.env.HUBOT_SOCOCO_LOGINPATH or null
+      bayeuxpath: process.env.HUBOT_SOCOCO_BAYEUXPATH or null
+      fayedebug: process.env.HUBOT_SOCOCO_FAYEDEBUG or null
+      encodecookies: process.env.HUBOT_SOCOCO_ENCODECOOKIES or false
       channel:  "/API"
 
     if not @options.server or not @options.token
@@ -50,12 +56,68 @@ class Sococo extends Adapter
 
     console.log "Sococo init"
 
-    apiParams = "token=#{@options.token}&zoneId=#{@options.room}&appId=#{@options.space}"
-    @client = new Faye.Client(@options.server)
-    @client.setHeader('API-Cookie', encodeURI(apiParams))
-    console.log("Connecting to Bayeux server: #{@options.server} with params #{apiParams}")
-    @client.connect () =>
+    loginPath = @options.loginpath or "/api/v1/login"
 
+    # make a request to the /login endpoint to validate the api token and room code
+    j = request.jar()
+    reqOps =
+      method: "post"
+      url: "#{@options.server}#{loginPath}"
+      json: true
+      jar: j
+      body:
+        token: @options.token
+        zurl: @options.roomcode # TODO: oh god rename this
+
+    console.log "Making login request to:", reqOps.url
+    request reqOps, (error, response, body) =>
+      if error || !response || response.statusCode != 200
+        status = response && response.statusCode
+        # TODO: should retry if code is 503 (60 seconds or whatever is in the response body)
+        console.log "error connecting: ", status, error, body
+        return
+
+      # need to preserve cookies for the bayeux phase
+      cookieString = j.getCookieString(reqOps.url)
+      @connectStream cookieString
+
+  connectStream: (cookieString) ->
+    bayeuxPath = @options.bayeuxpath or "/api/v1/bayeux"
+    streamUrl = "#{@options.server}#{bayeuxPath}"
+
+    # must reparse the url into components so that we can set the cookies properly
+    urlParts = url.parse streamUrl
+
+    @client = new Faye.Client(streamUrl)
+
+    if @options.fayedebug
+      @client.addExtension({
+        'incoming': (message, pipe) =>
+          clientId = null
+          console.log("FayIN [" + clientId + "]: ", JSON.stringify(message))
+          pipe(message)
+      })
+
+      @client.addExtension({
+        'outgoing': (message, pipe) =>
+          clientId = null;
+          console.log("FayOUT[" + clientId + "]: ", JSON.stringify(message));
+          pipe(message)
+      })
+
+    # faye doesn't support setting a cookie directly, so set the Cookie header
+    cookies = cookie.parse cookieString
+    for key,value of cookies
+      if @options.encodecookies # this should normally be false, as these are pre-encoded
+        value = encodeURIComponent(value)
+        console.log "encoding cookie values",value
+
+      cookieStr = "#{key}=#{value}; Path=#{urlParts.path}; Domain=#{urlParts.hostname}"
+      console.log "Setting cookie: #{cookieStr}"
+      @client.cookies.setCookie(cookieStr)
+
+    console.log("Connecting to Bayeux server: #{streamUrl}")
+    @client.connect () =>
       identified = false
       console.log("Connected #{@robot.name} to : #{@options.server}")
 
