@@ -30,10 +30,11 @@ class Sococo extends Adapter
   close: ->
     console.log "Shutting down bot"
     return if not @client
-    @client.publish
-      messageType:"Exit",
-      reason:"BOT_SHUTDOWN"
-
+    console.log "Disconnecting client"
+    @client.disconnect();
+    setTimeout ->
+      process.exit(0)
+    , 1000
   run: ->
     @seen = {}
     @options =
@@ -140,7 +141,7 @@ class Sococo extends Adapter
 
           # Filter out messages sent by the bot
           if botSuid == msg.senderID
-            #console.log "Filter out bot msg #{msg.contentData}"
+            #console.log "Filter out bot msg #{JSON.stringify(msg,null,3)}"
             return
 
           # TODO: Remove this.  Filter out duplicates manually, server should stop sending them.
