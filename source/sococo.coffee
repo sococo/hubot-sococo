@@ -49,7 +49,7 @@ class Sococo extends Adapter
       bayeuxpath: process.env.HUBOT_SOCOCO_BAYEUXPATH or null
       fayedebug: process.env.HUBOT_SOCOCO_FAYEDEBUG or null
       encodecookies: process.env.HUBOT_SOCOCO_ENCODECOOKIES or false
-      channel:  "/stream"
+      channel:  "/service/stream"
 
     if not @options.server or not @options.token
       @robot.logger.error("HUBOT_SOCOCO_SERVER and HUBOT_SOCOCO_TOKEN env variables must be set")
@@ -127,7 +127,7 @@ class Sococo extends Adapter
         msg = JSON.parse msg if typeof msg == "string"
         if msg.messageType == "Message"
           # Filter out messages sent by the bot
-          if msg.senderType == 'API'
+          if msg.senderType == 'API' or typeof msg.senderType is 'undefined'
             #console.log "Filter out bot msg #{JSON.stringify(msg,null,3)}"
             return
 
