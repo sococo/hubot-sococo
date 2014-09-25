@@ -4,7 +4,6 @@
   "author": "Justin DuJardin <justin.dujardin@sococo.com>",
   "description": "Sococo adapter for Hubot",
   "keywords": "hubot sococo adapter",
-  "private": true,
   "licenses": [
     {
       "type": "MIT",
