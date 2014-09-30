@@ -35,7 +35,7 @@ class Sococo extends Adapter
     console.log "Shutting down bot"
     return if not @client
     console.log "Disconnecting client"
-    @client.disconnect();
+    @client.disconnect()
     setTimeout ->
       process.exit(0)
     , 1000
