@@ -35,5 +35,9 @@
     "grunt-contrib-watch": "0.3.1",
     "grunt-conventional-changelog": "1.1.0",
     "grunt-npm": "0.0.2"
-  }
+  },
+  "contributors": [
+    "John Quigley <jmquigs@gmail.com>",
+    "Justin DuJardin <justin@dujardinconsulting.com>"
+  ]
 }
